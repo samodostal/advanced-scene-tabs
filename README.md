@@ -17,9 +17,13 @@ This plugin extends the Scene Tabs bar in the Godot editor. It gives you better 
 - Automatic tabs warp instead of horizontal scroll (you always see all open scenes)
 <img width="1017" height="133" alt="2026-06-09T17:03:31,361608662+02:00" src="https://github.com/user-attachments/assets/b52198db-f4fa-4090-9a01-e030ed7d9a33" />
 
+### Pins
+- Scenes can be pinned so they are harder to close (confirmation modal)
+- They won't be closed by the "close ungrouped scenes" button
+
 ### Small improvements
 - Remembers layout between sessions
-- Close ungrouped scene (trashcan icon)
+- Close ungrouped scenes (trashcan icon)
 - Revert accidental scene close (back arrow icon)
 - *To close scene press the scroll wheel button. I never used the close scene 'X' icon so I removed it. Can be brought back.*
 - You can also use right-click on specific scene / on group to view options.

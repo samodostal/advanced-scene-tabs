@@ -11,6 +11,7 @@ var _popups: ASTPopups
 var _editor: EditorInterface
 
 var _ctx_scene_path := ""
+var _pending_pin_close_path := ""
 
 var _last_tab_count := -1
 var _last_titles_hash := 0
@@ -59,6 +60,7 @@ func teardown() -> void:
 	_original_tab_bar = null
 	_btn_group = null
 	_drop_line = null
+	_pending_pin_close_path = ""
 	_last_tab_count = -1
 	_last_titles_hash = 0
 	_last_current = -1
@@ -328,6 +330,22 @@ func _build_tab_button(
 
 	_style_tab_button(btn, is_current)
 
+	if _store.is_pinned(scene_path):
+		var dot := Panel.new()
+
+		var dot_style := StyleBoxFlat.new()
+		dot_style.bg_color = Color(0.65, 0.65, 0.65, 0.9)
+		dot_style.set_corner_radius_all(3)
+		dot.add_theme_stylebox_override("panel", dot_style)
+
+		dot.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		dot.offset_left = -9
+		dot.offset_top = 2
+		dot.offset_right = -3
+		dot.offset_bottom = 8
+
+		btn.add_child(dot)
+
 	btn.pressed.connect(func(): _switch_tab(tab_idx))
 	btn.gui_input.connect(func(e): _on_tab_input(e, tab_idx, scene_path))
 
@@ -427,11 +445,17 @@ func _on_tab_input(event: InputEvent, tab_idx: int, scene_path: String) -> void:
 		return
 
 	if event.button_index == MOUSE_BUTTON_MIDDLE:
-		_close_tab(tab_idx)
+		if _store.is_pinned(scene_path):
+			_pending_pin_close_path = scene_path
+			_popups.show_pin_close_confirm()
+		else:
+			_close_tab(tab_idx)
 
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_ctx_scene_path = scene_path
-		_popups.show_tab_popup(event.global_position, _store.groups, scene_path)
+		_popups.show_tab_popup(
+			event.global_position, _store.groups, scene_path, _store.is_pinned(scene_path)
+		)
 
 
 func _close_tab(idx: int) -> void:
@@ -452,7 +476,7 @@ func close_all_ungrouped() -> void:
 	var open := _editor.get_open_scenes()
 	var to_close: Array = []
 	for i in open.size():
-		if _store.group_index_for(open[i]) == -1:
+		if _store.group_index_for(open[i]) == -1 and not _store.is_pinned(open[i]):
 			to_close.append(i)
 
 	to_close.reverse()
@@ -462,6 +486,30 @@ func close_all_ungrouped() -> void:
 			_store.push_closed(open2[idx])
 
 		_original_tab_bar.tab_close_pressed.emit(idx)
+
+
+func close_tab_by_index(idx: int) -> void:
+	var open := _editor.get_open_scenes()
+
+	if idx >= 0 and idx < open.size() and _store.is_pinned(open[idx]):
+		_pending_pin_close_path = open[idx]
+		_popups.show_pin_close_confirm()
+		return
+
+	_close_tab(idx)
+
+
+func close_pinned() -> void:
+	if _pending_pin_close_path.is_empty():
+		return
+
+	var open := _editor.get_open_scenes()
+	var idx := _tab_index_of(_pending_pin_close_path, open)
+
+	_pending_pin_close_path = ""
+
+	if idx >= 0:
+		_close_tab(idx)
 
 
 func close_all_in_group(gi: int) -> void:

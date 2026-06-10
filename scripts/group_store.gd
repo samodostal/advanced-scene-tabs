@@ -2,11 +2,15 @@
 class_name ASTGroupStore
 
 var groups: Array = []
+var pinned: Array = []
+
 var closed_history: Array = []
 
 
 func load_from_disk() -> void:
 	groups.clear()
+	pinned.clear()
+
 	if not FileAccess.file_exists(ASTConstants.SAVE_PATH):
 		return
 
@@ -33,6 +37,10 @@ func load_from_disk() -> void:
 				)
 			)
 
+	if parsed.has("pinned") and parsed["pinned"] is Array:
+		for p in parsed["pinned"]:
+			pinned.append(str(p))
+
 
 func save_to_disk() -> void:
 	var data := []
@@ -49,8 +57,20 @@ func save_to_disk() -> void:
 		)
 	var f := FileAccess.open(ASTConstants.SAVE_PATH, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"groups": data}, "\t"))
+		f.store_string(JSON.stringify({"groups": data, "pinned": Array(pinned)}, "\t"))
 		f.close()
+
+
+func is_pinned(scene_path: String) -> bool:
+	return scene_path in pinned
+
+
+func toggle_pin(scene_path: String) -> void:
+	if scene_path in pinned:
+		pinned.erase(scene_path)
+	else:
+		pinned.append(scene_path)
+	save_to_disk()
 
 
 func group_index_for(scene_path: String) -> int:
@@ -106,6 +126,10 @@ func push_closed(scene_path: String) -> void:
 		pos = groups[gi]["scenes"].find(scene_path)
 
 	closed_history.append({"scene": scene_path, "group": gi, "group_pos": pos})
+
+	if scene_path in pinned:
+		pinned.erase(scene_path)
+		save_to_disk()
 
 	while closed_history.size() > ASTConstants.UNDO_LIMIT:
 		closed_history.pop_front()

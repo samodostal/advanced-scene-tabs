@@ -22,6 +22,7 @@ const RETRY_INTERVAL := 30
 const TAB_MENU_NEW_GROUP := 0
 const TAB_MENU_UNGROUP := 1
 const TAB_MENU_CLOSE := 2
+const TAB_MENU_PIN := 3
 const TAB_MENU_MOVE_BASE := 100
 
 const GROUP_MENU_RENAME := 0

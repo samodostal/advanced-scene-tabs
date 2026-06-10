@@ -71,6 +71,7 @@ func _wire_popup_signals() -> void:
 	_popups.tab_popup_action.connect(_on_tab_popup_action)
 	_popups.group_popup_action.connect(_on_group_popup_action)
 	_popups.close_ungrouped_confirmed.connect(_on_close_ungrouped_confirmed)
+	_popups.pin_close_confirmed.connect(_on_pin_close_confirmed)
 
 
 func _on_new_group_confirmed(name: String, color: String) -> void:
@@ -99,6 +100,9 @@ func _on_tab_popup_action(id: int) -> void:
 		_popups.show_new_group_dialog(_store.pick_unused_color())
 	elif id == ASTConstants.TAB_MENU_UNGROUP:
 		_store.remove_scene_from_all(ctx_path)
+		_ui.rebuild()
+	elif id == ASTConstants.TAB_MENU_PIN:
+		_store.toggle_pin(ctx_path)
 		_ui.rebuild()
 	elif id == ASTConstants.TAB_MENU_CLOSE:
 		var open := get_editor_interface().get_open_scenes()
@@ -145,6 +149,10 @@ func _on_group_popup_action(id: int) -> void:
 
 func _on_close_ungrouped_confirmed() -> void:
 	_ui.close_all_ungrouped()
+
+
+func _on_pin_close_confirmed() -> void:
+	_ui.close_pinned()
 
 
 func _tab_index_of(scene_path: String, open_scenes: PackedStringArray) -> int:
