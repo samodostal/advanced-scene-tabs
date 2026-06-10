@@ -454,7 +454,7 @@ func _on_tab_input(event: InputEvent, tab_idx: int, scene_path: String) -> void:
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_ctx_scene_path = scene_path
 		_popups.show_tab_popup(
-			event.global_position, _store.groups, scene_path, _store.is_pinned(scene_path)
+			Vector2(DisplayServer.window_get_position(event.window_id)) + event.global_position, _store.groups, scene_path, _store.is_pinned(scene_path)
 		)
 
 
