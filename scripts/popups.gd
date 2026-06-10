@@ -7,6 +7,7 @@ signal color_changed(gi: int, color: String)
 signal tab_popup_action(id: int)
 signal group_popup_action(id: int)
 signal close_ungrouped_confirmed
+signal pin_close_confirmed
 
 var _tab_popup: PopupMenu
 var _group_popup: PopupMenu
@@ -14,6 +15,7 @@ var _color_submenu: PopupMenu
 var _new_group_dialog: ConfirmationDialog
 var _rename_dialog: ConfirmationDialog
 var _confirm_close: ConfirmationDialog
+var _confirm_close_pinned: ConfirmationDialog
 
 var _ctx_group_idx := -1
 var _new_group_color := "Blue"
@@ -36,15 +38,25 @@ func build(base: Control) -> void:
 	_build_new_group_dialog(base)
 	_build_rename_dialog(base)
 	_build_close_confirm(base)
+	_build_pin_close_confirm(base)
 
 
 func destroy() -> void:
-	for n in [_tab_popup, _group_popup, _new_group_dialog, _rename_dialog, _confirm_close]:
+	for n in [
+		_tab_popup,
+		_group_popup,
+		_new_group_dialog,
+		_rename_dialog,
+		_confirm_close,
+		_confirm_close_pinned
+	]:
 		if is_instance_valid(n):
 			n.queue_free()
 
 
-func show_tab_popup(global_pos: Vector2, groups: Array, ctx_scene_path: String) -> void:
+func show_tab_popup(
+	global_pos: Vector2, groups: Array, ctx_scene_path: String, is_pinned: bool
+) -> void:
 	_tab_popup.clear()
 	_tab_popup.add_item("New Group...", ASTConstants.TAB_MENU_NEW_GROUP)
 	_tab_popup.add_separator()
@@ -74,10 +86,17 @@ func show_tab_popup(global_pos: Vector2, groups: Array, ctx_scene_path: String) 
 		_tab_popup.add_item("Remove from Group", ASTConstants.TAB_MENU_UNGROUP)
 
 	_tab_popup.add_separator()
+	_tab_popup.add_item("Unpin" if is_pinned else "Pin", ASTConstants.TAB_MENU_PIN)
+
+	_tab_popup.add_separator()
 	_tab_popup.add_item("Close", ASTConstants.TAB_MENU_CLOSE)
 	_tab_popup.position = Vector2i(global_pos)
 	_tab_popup.reset_size()
 	_tab_popup.popup()
+
+
+func show_pin_close_confirm() -> void:
+	_confirm_close_pinned.popup_centered()
 
 
 func show_group_popup(gi: int, global_pos: Vector2, groups: Array) -> void:
@@ -168,6 +187,10 @@ func _on_rename_confirmed() -> void:
 
 func _on_close_confirmed() -> void:
 	close_ungrouped_confirmed.emit()
+
+
+func _on_pin_close_confirmed() -> void:
+	pin_close_confirmed.emit()
 
 
 func _on_color_btn_pressed(cname: String) -> void:
@@ -268,6 +291,15 @@ func _build_close_confirm(base: Control) -> void:
 	_confirm_close.confirmed.connect(_on_close_confirmed)
 
 	base.add_child(_confirm_close)
+
+
+func _build_pin_close_confirm(base: Control) -> void:
+	_confirm_close_pinned = ConfirmationDialog.new()
+	_confirm_close_pinned.title = "Close Pinned Scene"
+	_confirm_close_pinned.dialog_text = "This scene is pinned. Close it anyway?"
+	_confirm_close_pinned.confirmed.connect(_on_pin_close_confirmed)
+
+	base.add_child(_confirm_close_pinned)
 
 
 func _color_swatch(color: Color) -> ImageTexture:
