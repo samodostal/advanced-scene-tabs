@@ -104,12 +104,24 @@ func _on_tab_popup_action(id: int) -> void:
 	elif id == ASTConstants.TAB_MENU_PIN:
 		_store.toggle_pin(ctx_path)
 		_ui.rebuild()
+	elif id == ASTConstants.TAB_MENU_SHOW_IN_FILESYSTEM:
+		EditorInterface.select_file(ctx_path)
+		EditorInterface.get_file_system_dock().make_visible()
 	elif id == ASTConstants.TAB_MENU_CLOSE:
 		var open := get_editor_interface().get_open_scenes()
 		var idx := _tab_index_of(ctx_path, open)
 
 		if idx >= 0:
 			_ui.close_tab_by_index(idx)
+	elif id == ASTConstants.TAB_MENU_CLOSE_OTHERS:
+		_ui.close_neighbors_in_group(ctx_path, [-1, 1]);
+		_ui.rebuild()
+	elif id == ASTConstants.TAB_MENU_CLOSE_LEFT:
+		_ui.close_neighbors_in_group(ctx_path, [-1]);
+		_ui.rebuild()
+	elif id == ASTConstants.TAB_MENU_CLOSE_RIGHT:
+		_ui.close_neighbors_in_group(ctx_path, [1]);
+		_ui.rebuild()
 
 	elif id >= ASTConstants.TAB_MENU_MOVE_BASE:
 		var gi := id - ASTConstants.TAB_MENU_MOVE_BASE

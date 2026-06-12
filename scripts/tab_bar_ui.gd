@@ -454,8 +454,17 @@ func _on_tab_input(event: InputEvent, tab_idx: int, scene_path: String) -> void:
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_ctx_scene_path = scene_path
 		_popups.show_tab_popup(
-			event.global_position, _store.groups, scene_path, _store.is_pinned(scene_path)
+			get_input_popup_position(event), _store.groups, scene_path, _store.is_pinned(scene_path)
 		)
+
+
+func get_input_popup_position(event: InputEventMouse) -> Vector2:
+	var pos := event.global_position
+
+	if EditorInterface.is_multi_window_enabled():
+		pos += Vector2(DisplayServer.window_get_position(event.window_id))
+
+	return pos
 
 
 func _close_tab(idx: int) -> void:
@@ -467,6 +476,22 @@ func _close_tab(idx: int) -> void:
 		_store.push_closed(open[idx])
 
 	_original_tab_bar.tab_close_pressed.emit(idx)
+
+
+func list_tabs_in_group(group_idx: int) -> Array:
+	var open := _editor.get_open_scenes()
+	var output: Array = []
+	if group_idx >= 0:
+		for scn in _store.groups[group_idx]["scenes"]:
+			var tab_index := open.find(scn)
+			if tab_index != -1:
+				output.append(tab_index)
+	else:
+		for i in open.size():
+			if _store.group_index_for(open[i]) == group_idx:
+				output.append(i)
+
+	return output
 
 
 func close_all_ungrouped() -> void:
@@ -486,6 +511,54 @@ func close_all_ungrouped() -> void:
 			_store.push_closed(open2[idx])
 
 		_original_tab_bar.tab_close_pressed.emit(idx)
+
+
+func close_neighbors_in_group(tab_path: String, directions_to_close: Array[int]) -> void:
+	var to_close: Array = get_tab_neighbors_in_direction(tab_path, directions_to_close, true)
+	to_close.sort()
+	to_close.reverse()
+
+	for idx in to_close:
+		var open2 := _editor.get_open_scenes()
+		if idx < open2.size():
+			_store.push_closed(open2[idx])
+
+		_original_tab_bar.tab_close_pressed.emit(idx)
+
+
+func get_tab_neighbors_in_direction(
+	tab_path: String, directions: Array[int], exclude_pinned: bool = false
+) -> Array:
+	if not is_instance_valid(_original_tab_bar):
+		return []
+
+	var group_index := _store.group_index_for(tab_path)
+	var open := _editor.get_open_scenes()
+	var tabs_in_group: Array = list_tabs_in_group(group_index)
+	var occurrence_index_in_group := -1
+
+	for i in tabs_in_group.size():
+		var tab_idx: int = tabs_in_group[i]
+		if open[tab_idx] == tab_path:
+			occurrence_index_in_group = i
+
+	if occurrence_index_in_group == -1:
+		printerr(
+			"Failed to get tab neighbors in group: tab for scene '" + tab_path + "' was not found."
+		)
+		return []
+
+	var output: Array = []
+	for i in tabs_in_group.size():
+		var tab_index = tabs_in_group[i]
+		if exclude_pinned and _store.is_pinned(open[tab_index]):
+			continue
+
+		var direction := signi(i - occurrence_index_in_group)
+		if direction in directions:
+			output.append(tab_index)
+
+	return output
 
 
 func close_tab_by_index(idx: int) -> void:
