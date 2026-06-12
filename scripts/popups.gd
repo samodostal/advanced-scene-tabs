@@ -103,7 +103,7 @@ func show_tab_popup(
 		_tab_popup.add_separator("Close in Group" if in_group else "Close Ungrouped")
 	else:
 		_tab_popup.add_separator()
-	_tab_popup.add_item("Close", ASTConstants.TAB_MENU_CLOSE)
+	_tab_popup.add_item("Close Tab", ASTConstants.TAB_MENU_CLOSE)
 
 	if tab_count_in_same_group > 1:
 		_tab_popup.add_item("Close Other Tabs", ASTConstants.TAB_MENU_CLOSE_OTHERS)
