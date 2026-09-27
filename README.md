@@ -1,4 +1,4 @@
-# Advanced Scene Tabs Plugin (Godot 4.6+)
+# Advanced Scene Tabs Plugin (Godot 4.7+)
 > [!NOTE]
 > This plugin is still experimental and may have bugs. New Godot versions may and probably will break it. You can always disable it in `Project Settings → Plugins`.
 > Any feedback or ideas are welcome.
