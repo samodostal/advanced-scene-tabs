@@ -2,6 +2,7 @@
 extends EditorPlugin
 
 const GroupStoreScript = preload("res://addons/advanced_scene_tabs/scripts/group_store.gd")
+const SceneUtilsScript = preload("res://addons/advanced_scene_tabs/scripts/scene_utils.gd")
 const PopupsScript = preload("res://addons/advanced_scene_tabs/scripts/popups.gd")
 const TabBarUIScript = preload("res://addons/advanced_scene_tabs/scripts/tab_bar_ui.gd")
 
@@ -108,19 +109,19 @@ func _on_tab_popup_action(id: int) -> void:
 		EditorInterface.select_file(ctx_path)
 		EditorInterface.get_file_system_dock().make_visible()
 	elif id == ASTConstants.TAB_MENU_CLOSE:
-		var open := get_editor_interface().get_open_scenes()
+		var open := ASTSceneUtils.get_open_scene_paths(get_editor_interface())
 		var idx := _tab_index_of(ctx_path, open)
 
 		if idx >= 0:
 			_ui.close_tab_by_index(idx)
 	elif id == ASTConstants.TAB_MENU_CLOSE_OTHERS:
-		_ui.close_neighbors_in_group(ctx_path, [-1, 1]);
+		_ui.close_neighbors_in_group(ctx_path, [-1, 1])
 		_ui.rebuild()
 	elif id == ASTConstants.TAB_MENU_CLOSE_LEFT:
-		_ui.close_neighbors_in_group(ctx_path, [-1]);
+		_ui.close_neighbors_in_group(ctx_path, [-1])
 		_ui.rebuild()
 	elif id == ASTConstants.TAB_MENU_CLOSE_RIGHT:
-		_ui.close_neighbors_in_group(ctx_path, [1]);
+		_ui.close_neighbors_in_group(ctx_path, [1])
 		_ui.rebuild()
 
 	elif id >= ASTConstants.TAB_MENU_MOVE_BASE:
@@ -129,7 +130,7 @@ func _on_tab_popup_action(id: int) -> void:
 			var open_list: Array = []
 
 			for spath in _store.groups[gi]["scenes"]:
-				if spath in get_editor_interface().get_open_scenes():
+				if spath in ASTSceneUtils.get_open_scene_paths(get_editor_interface()):
 					open_list.append(spath)
 
 			_store.move_scene_to_group(ctx_path, gi, open_list.size(), open_list)
@@ -176,7 +177,7 @@ func _tab_index_of(scene_path: String, open_scenes: PackedStringArray) -> int:
 
 
 func _find_scene_tab_bar() -> TabBar:
-	var scenes := get_editor_interface().get_open_scenes()
+	var scenes := ASTSceneUtils.get_open_scene_paths(get_editor_interface())
 	if scenes.is_empty():
 		return null
 

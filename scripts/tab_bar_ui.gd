@@ -107,7 +107,7 @@ func rebuild() -> void:
 	actions_vbox.add_theme_constant_override("separation", 2)
 	_main_container.add_child(actions_vbox)
 
-	var open_scenes := _editor.get_open_scenes()
+	var open_scenes := ASTSceneUtils.get_open_scene_paths(_editor)
 	var current := _original_tab_bar.current_tab
 
 	for gi in _store.groups.size():
@@ -471,7 +471,7 @@ func _close_tab(idx: int) -> void:
 	if not is_instance_valid(_original_tab_bar):
 		return
 
-	var open := _editor.get_open_scenes()
+	var open := ASTSceneUtils.get_open_scene_paths(_editor)
 	if idx >= 0 and idx < open.size():
 		_store.push_closed(open[idx])
 
@@ -479,7 +479,7 @@ func _close_tab(idx: int) -> void:
 
 
 func list_tabs_in_group(group_idx: int) -> Array:
-	var open := _editor.get_open_scenes()
+	var open := ASTSceneUtils.get_open_scene_paths(_editor)
 	var output: Array = []
 	if group_idx >= 0:
 		for scn in _store.groups[group_idx]["scenes"]:
@@ -498,7 +498,7 @@ func close_all_ungrouped() -> void:
 	if not is_instance_valid(_original_tab_bar):
 		return
 
-	var open := _editor.get_open_scenes()
+	var open := ASTSceneUtils.get_open_scene_paths(_editor)
 	var to_close: Array = []
 	for i in open.size():
 		if _store.group_index_for(open[i]) == -1 and not _store.is_pinned(open[i]):
@@ -506,7 +506,7 @@ func close_all_ungrouped() -> void:
 
 	to_close.reverse()
 	for idx in to_close:
-		var open2 := _editor.get_open_scenes()
+		var open2 := ASTSceneUtils.get_open_scene_paths(_editor)
 		if idx < open2.size():
 			_store.push_closed(open2[idx])
 
@@ -519,7 +519,7 @@ func close_neighbors_in_group(tab_path: String, directions_to_close: Array[int])
 	to_close.reverse()
 
 	for idx in to_close:
-		var open2 := _editor.get_open_scenes()
+		var open2 := ASTSceneUtils.get_open_scene_paths(_editor)
 		if idx < open2.size():
 			_store.push_closed(open2[idx])
 
@@ -533,7 +533,7 @@ func get_tab_neighbors_in_direction(
 		return []
 
 	var group_index := _store.group_index_for(tab_path)
-	var open := _editor.get_open_scenes()
+	var open := ASTSceneUtils.get_open_scene_paths(_editor)
 	var tabs_in_group: Array = list_tabs_in_group(group_index)
 	var occurrence_index_in_group := -1
 
@@ -562,7 +562,7 @@ func get_tab_neighbors_in_direction(
 
 
 func close_tab_by_index(idx: int) -> void:
-	var open := _editor.get_open_scenes()
+	var open := ASTSceneUtils.get_open_scene_paths(_editor)
 
 	if idx >= 0 and idx < open.size() and _store.is_pinned(open[idx]):
 		_pending_pin_close_path = open[idx]
@@ -576,7 +576,7 @@ func close_pinned() -> void:
 	if _pending_pin_close_path.is_empty():
 		return
 
-	var open := _editor.get_open_scenes()
+	var open := ASTSceneUtils.get_open_scene_paths(_editor)
 	var idx := _tab_index_of(_pending_pin_close_path, open)
 
 	_pending_pin_close_path = ""
@@ -589,7 +589,7 @@ func close_all_in_group(gi: int) -> void:
 	if gi >= _store.groups.size() or not is_instance_valid(_original_tab_bar):
 		return
 
-	var open := _editor.get_open_scenes()
+	var open := ASTSceneUtils.get_open_scene_paths(_editor)
 	var to_close: Array = []
 	for spath in _store.groups[gi]["scenes"]:
 		var idx := _tab_index_of(spath, open)
